@@ -1,4 +1,8 @@
 using System.Net.Http.Headers;
+using Api.Configuration;
+using Api.Endpoints;
+using Api.Filters;
+using Api.Services;
 
 namespace Api;
 
@@ -8,6 +12,9 @@ internal static class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Logging.AddConsole(options => options.TimestampFormat = "[yyyy.MM.dd HH:mm:ss.fff] ");
+
+        builder.Services.AddControllers().AddControllersAsServices();
+        builder.Services.AddSignalR();
 
         builder.Services.AddSingleton<AliceService>();
         builder.Services.AddSingleton<StatusManager>();
@@ -19,21 +26,13 @@ internal static class Program
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Token);
         });
 
-        builder.Host.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
         builder.WebHost.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
         var app = builder.Build();
 
-        app.MapGet("/status", (StatusManager manager) => manager.GetStatus());
-        app.MapPost("/wake", (StatusManager manager) => manager.Wake());
-        app.MapPost("/awake/reset", (StatusManager manager) => manager.ResetAwake());
-        app.MapPost("/vpn/enable", (StatusManager manager) => manager.EnableVpn());
-        app.MapPost("/vpn/reset", (StatusManager manager) => manager.ResetVpn());
+        app.MapControllers();
+        app.MapHub<StatusHub>("/proxy")
+            .AddEndpointFilter<HubEndpointConventionBuilder, StatusHubFilter>();
 
-        app.MapPost("/proxy/status", (ProxyStatusDto dto, StatusManager manager) => manager.UpdateProxyStatus(dto));
-        app.MapPost("/daemon/status", (DaemonStatusDto dto, StatusManager manager) => manager.UpdateDaemonStatus(dto));
-
-        app.MapPost("/alice", (AliceCommandDto commandDto, AliceService aliceService) => aliceService.HandleCommand(commandDto));
-        
         app.Run();
     }
 }

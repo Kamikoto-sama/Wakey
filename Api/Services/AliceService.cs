@@ -1,13 +1,13 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Api;
+namespace Api.Services;
 
 public class AliceService(StatusManager statusManager)
 {
     public ResponseDto HandleCommand(AliceCommandDto commandDto)
     {
-        statusManager.Wake();
+        statusManager.Awake();
 
         var command = commandDto.Request.Command;
         var text = command.Length > 0 ? $"Попросила {command}" : "";

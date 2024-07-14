@@ -1,6 +1,7 @@
-﻿using Kami.Utils;
+﻿using Api.Configuration;
+using Kami.Utils;
 
-namespace Api;
+namespace Api.Services;
 
 public class ChargeService(IConfiguration configuration, HttpClient client, ILogger<ChargeService> log)
 {
