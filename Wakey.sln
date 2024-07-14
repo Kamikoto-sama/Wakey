@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daemon", "Daemon\Daemon.csproj", "{910F0F7A-5A39-4332-987F-71F7A74555B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api", "Api\Api.csproj", "{EBFD1BA3-C4F1-4D05-A4BB-A8D712029CCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliceFunctions", "AliceFunctions\AliceFunctions.csproj", "{79E7F293-01A1-4203-A0FE-B36EDD46A595}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{910F0F7A-5A39-4332-987F-71F7A74555B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{910F0F7A-5A39-4332-987F-71F7A74555B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{910F0F7A-5A39-4332-987F-71F7A74555B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{910F0F7A-5A39-4332-987F-71F7A74555B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBFD1BA3-C4F1-4D05-A4BB-A8D712029CCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBFD1BA3-C4F1-4D05-A4BB-A8D712029CCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBFD1BA3-C4F1-4D05-A4BB-A8D712029CCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBFD1BA3-C4F1-4D05-A4BB-A8D712029CCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79E7F293-01A1-4203-A0FE-B36EDD46A595}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E7F293-01A1-4203-A0FE-B36EDD46A595}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E7F293-01A1-4203-A0FE-B36EDD46A595}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E7F293-01A1-4203-A0FE-B36EDD46A595}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
