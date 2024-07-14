@@ -13,7 +13,7 @@ internal static class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Logging.AddConsole(options => options.TimestampFormat = "[yyyy.MM.dd HH:mm:ss.fff] ");
 
-        builder.Services.AddControllers().AddControllersAsServices();
+        builder.Services.AddControllers();
         builder.Services.AddSignalR();
 
         builder.Services.AddSingleton<AliceService>();
@@ -29,8 +29,10 @@ internal static class Program
         builder.WebHost.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
         var app = builder.Build();
 
-        app.MapControllers();
+        app.MapControllers()
+            .AddEndpointFilter<ControllerActionEndpointConventionBuilder, ApiKeyFilter>();
         app.MapHub<StatusHub>("/proxy")
+            .AddEndpointFilter<HubEndpointConventionBuilder, ApiKeyFilter>()
             .AddEndpointFilter<HubEndpointConventionBuilder, StatusHubFilter>();
 
         app.Run();
