@@ -2,9 +2,13 @@ using System.Net.Http.Json;
 
 namespace Daemon;
 
-public class Worker(ILogger<Worker> logger, VpnService vpnService) : BackgroundService
+public class Worker(ILogger<Worker> logger, VpnService vpnService, IConfiguration configuration) : BackgroundService
 {
-    private readonly HttpClient client = new() { BaseAddress = new Uri("") };
+    private readonly HttpClient client = new()
+    {
+        BaseAddress = new Uri(configuration.GetValue<string>("ApiUri")!)
+    };
+
     private readonly Status status = new();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -13,6 +17,7 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService) : BackgroundS
         {
             try
             {
+                status.VpnEnabled = vpnService.Running;
                 var res = await client.PostAsync("/daemon/status", JsonContent.Create(status), stoppingToken);
                 var responseString = await res.Content.ReadAsStringAsync(stoppingToken);
                 if (res.IsSuccessStatusCode)
@@ -36,27 +41,39 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService) : BackgroundS
     {
         var vpnRequested = bool.Parse(vpnRequestedStr);
         logger.LogInformation($"Vpn requested: {vpnRequested}; Running: {vpnService.Running}");
-        if (vpnRequested)
-            StartVpn();
-        else
-            StopVpn();
+        switch (vpnRequested)
+        {
+            case true when !vpnService.Running:
+                StartVpn();
+                break;
+            case false when vpnService.Running:
+                StopVpn();
+                break;
+        }
     }
 
     private void StopVpn()
     {
-            status.VpnEnabled = vpnService.Running;
-            vpnService.Stop();
-            logger.LogInformation("Killing vpn...");
+        logger.LogInformation("Killing vpn...");
+        vpnService.Stop();
     }
 
     private void StartVpn()
     {
+        logger.LogInformation("Starting vpn...");
         vpnService.Start();
         status.VpnEnabled = vpnService.Running;
     }
 
+    public override Task StopAsync(CancellationToken cancellationToken)
+    {
+        vpnService.Stop();
+        return Task.CompletedTask;
+    }
+
     public override void Dispose()
     {
+        vpnService.Dispose();
         client.Dispose();
         base.Dispose();
     }
