@@ -31,7 +31,7 @@ internal static class Program
 
         app.MapControllers()
             .AddEndpointFilter<ControllerActionEndpointConventionBuilder, ApiKeyFilter>();
-        app.MapHub<StatusHub>("/proxy")
+        app.MapHub<StatusHub>("/status")
             .AddEndpointFilter<HubEndpointConventionBuilder, ApiKeyFilter>()
             .AddEndpointFilter<HubEndpointConventionBuilder, StatusHubFilter>();
 
