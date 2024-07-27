@@ -1,45 +1,38 @@
-using System.Net.Http.Json;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Daemon;
 
-public class Worker(ILogger<Worker> logger, VpnService vpnService, IConfiguration configuration) : BackgroundService
+public class Worker : IHostedService, IAsyncDisposable
 {
-    private readonly HttpClient client = new()
-    {
-        BaseAddress = new Uri(configuration.GetValue<string>("ApiUri")!)
-    };
-
+    private readonly ILogger<Worker> logger;
+    private readonly VpnService vpnService;
+    private readonly HubConnection connection;
     private readonly Status status = new();
+    private readonly CancellationTokenSource cts;
+    private Task? statusReporter;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public Worker(ILogger<Worker> logger, VpnService vpnService, IConfiguration configuration)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                status.VpnEnabled = vpnService.Running;
-                var res = await client.PostAsync("/daemon/status", JsonContent.Create(status), stoppingToken);
-                var responseString = await res.Content.ReadAsStringAsync(stoppingToken);
-                if (res.IsSuccessStatusCode)
-                    HandleResponse(responseString);
-                else
-                    logger.LogError($"Request failed: {res.StatusCode} - {res.ReasonPhrase}; '{responseString}'");
-            }
-            catch (TaskCanceledException)
-            {
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Request failed");
-            }
-
-            await Task.Delay(3000, stoppingToken);
-        }
+        this.logger = logger;
+        this.vpnService = vpnService;
+        var apiUri = configuration.GetValue<string>("ApiUri");
+        var apiKey = configuration.GetValue<string>("ApiKey");
+        connection = new HubConnectionBuilder()
+            .WithUrl($"{apiUri}/status?apiKey={apiKey}&clientType=Daemon")
+            .WithAutomaticReconnect()
+            .Build();
+        cts = new CancellationTokenSource();
     }
 
-    private void HandleResponse(string vpnRequestedStr)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var vpnRequested = bool.Parse(vpnRequestedStr);
+        await connection.StartAsync(cancellationToken);
+        connection.On<bool>("Vpn", HandleResponse);
+        statusReporter = await Task.Factory.StartNew(StatusReporter, TaskCreationOptions.LongRunning);
+    }
+
+    private void HandleResponse(bool vpnRequested)
+    {
         logger.LogInformation($"Vpn requested: {vpnRequested}; Running: {vpnService.Running}");
         switch (vpnRequested)
         {
@@ -65,17 +58,40 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, IConfiguratio
         status.VpnEnabled = vpnService.Running;
     }
 
-    public override Task StopAsync(CancellationToken cancellationToken)
+    private async Task StatusReporter()
     {
-        vpnService.Stop();
-        return Task.CompletedTask;
+        while (!cts.IsCancellationRequested)
+        {
+            try
+            {
+                status.VpnEnabled = vpnService.Running;
+                await connection.SendAsync("SyncDaemonStatus", status, cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Request failed");
+            }
+
+            await Task.Delay(3000, cts.Token);
+        }
     }
 
-    public override void Dispose()
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        vpnService.Stop();
+        await cts.CancelAsync();
+        if (statusReporter != null)
+            await statusReporter;
+        await connection.StopAsync(cancellationToken);
+    }
+
+    public async ValueTask DisposeAsync()
     {
         vpnService.Dispose();
-        client.Dispose();
-        base.Dispose();
+        await connection.DisposeAsync();
     }
 }
 
