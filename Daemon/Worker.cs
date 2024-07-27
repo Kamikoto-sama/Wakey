@@ -1,3 +1,4 @@
+using Kami.Utils;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Daemon;
@@ -19,7 +20,7 @@ public class Worker : IHostedService, IAsyncDisposable
         var apiKey = configuration.GetValue<string>("ApiKey");
         connection = new HubConnectionBuilder()
             .WithUrl($"{apiUri}/status?apiKey={apiKey}&clientType=Daemon")
-            .WithAutomaticReconnect()
+            .WithAutomaticReconnect(new ConstantDelayRetryPolicy(5.Seconds()))
             .Build();
         cts = new CancellationTokenSource();
     }
@@ -75,7 +76,13 @@ public class Worker : IHostedService, IAsyncDisposable
                 logger.LogError(e, "Request failed");
             }
 
-            await Task.Delay(3000, cts.Token);
+            try
+            {
+                await Task.Delay(3000, cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
     }
 
