@@ -95,11 +95,7 @@ public class Worker : IHostedService, IAsyncDisposable
         await connection.StopAsync(cancellationToken);
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        vpnService.Dispose();
-        await connection.DisposeAsync();
-    }
+    public async ValueTask DisposeAsync() => await connection.DisposeAsync();
 }
 
 public record Status
