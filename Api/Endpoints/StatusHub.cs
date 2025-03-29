@@ -10,14 +10,20 @@ public class StatusHub(StatusManager statusManager, ILogger<StatusHub> logger) :
     public override Task OnConnectedAsync()
     {
         var clientType = GetClientType();
-        var clientTypeName = clientType switch
-        {
-            ClientType.Proxy => nameof(ClientType.Proxy),
-            ClientType.Daemon => nameof(ClientType.Daemon),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        Groups.AddToGroupAsync(Context.ConnectionId, clientTypeName);
+        Groups.AddToGroupAsync(Context.ConnectionId, clientType.ToString());
         logger.LogInformation("{} connected", clientType);
+        switch (clientType)
+        {
+            case ClientType.Proxy:
+                statusManager.ProxyConnected();
+                break;
+            case ClientType.Daemon:
+                statusManager.DaemonConnected();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
         return base.OnConnectedAsync();
     }
 
@@ -39,6 +45,7 @@ public class StatusHub(StatusManager statusManager, ILogger<StatusHub> logger) :
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
         logger.LogInformation("{} disconnected", clientType);
         return base.OnDisconnectedAsync(exception);
     }

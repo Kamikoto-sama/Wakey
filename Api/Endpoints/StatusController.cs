@@ -19,13 +19,6 @@ public class StatusController(StatusManager statusManager) : Controller
         return Ok();
     }
 
-    [HttpPost("awake/reset")]
-    public IActionResult ResetAwake()
-    {
-        statusManager.ResetAwake();
-        return Ok();
-    }
-
     [HttpPost("vpn/enable")]
     public IActionResult EnableVpn()
     {

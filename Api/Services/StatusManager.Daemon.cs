@@ -4,17 +4,9 @@ namespace Api.Services;
 
 public partial class StatusManager
 {
-    public void EnableVpn()
-    {
-        status.VpnRequested = true;
-        Send(ClientType.Daemon, "Vpn", true);
-    }
+    public void EnableVpn() => Send(ClientType.Daemon, "Vpn", true);
 
-    public void DisableVpn()
-    {
-        status.VpnRequested = false;
-        Send(ClientType.Daemon, "Vpn", false);
-    }
+    public void DisableVpn() => Send(ClientType.Daemon, "Vpn", false);
 
     public void UpdateDaemonStatus(DaemonStatusDto dto)
     {
@@ -23,6 +15,8 @@ public partial class StatusManager
         status.VpnEnabled = dto.VpnEnabled;
     }
 
+    public void DaemonConnected() => status.DaemonConnected = true;
+    
     public void DaemonDisconnected() => status.DaemonConnected = false;
 }
 
