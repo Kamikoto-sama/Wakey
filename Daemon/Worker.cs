@@ -1,3 +1,4 @@
+using Api.Contracts;
 using Kami.Utils;
 using Microsoft.AspNetCore.SignalR.Client;
 
@@ -16,10 +17,10 @@ public class Worker : IHostedService, IAsyncDisposable
     {
         this.logger = logger;
         this.vpnService = vpnService;
-        var apiUri = configuration.GetValue<string>("ApiUri");
-        var apiKey = configuration.GetValue<string>("ApiKey");
+        var apiUri = configuration.GetValue<string>("ApiUri")!;
+        var apiKey = configuration.GetValue<string>("ApiKey")!;
         connection = new HubConnectionBuilder()
-            .WithUrl($"{apiUri}/status?apiKey={apiKey}&clientType=Daemon")
+            .WithUrl(UrlBuilder.BuildStatusUrl(apiUri, apiKey, ClientType.Daemon))
             .WithAutomaticReconnect(new ConstantDelayRetryPolicy(5.Seconds()))
             .Build();
         cts = new CancellationTokenSource();
@@ -30,33 +31,6 @@ public class Worker : IHostedService, IAsyncDisposable
         await connection.StartAsync(cancellationToken);
         connection.On<bool>("Vpn", HandleResponse);
         statusReporter = await Task.Factory.StartNew(StatusReporter, TaskCreationOptions.LongRunning);
-    }
-
-    private void HandleResponse(bool vpnRequested)
-    {
-        logger.LogInformation($"Vpn requested: {vpnRequested}; Running: {vpnService.Running}");
-        switch (vpnRequested)
-        {
-            case true when !vpnService.Running:
-                StartVpn();
-                break;
-            case false when vpnService.Running:
-                StopVpn();
-                break;
-        }
-    }
-
-    private void StopVpn()
-    {
-        logger.LogInformation("Killing vpn...");
-        vpnService.Stop();
-    }
-
-    private void StartVpn()
-    {
-        logger.LogInformation("Starting vpn...");
-        vpnService.Start();
-        status.VpnEnabled = vpnService.Running;
     }
 
     private async Task StatusReporter()
@@ -78,12 +52,39 @@ public class Worker : IHostedService, IAsyncDisposable
 
             try
             {
-                await Task.Delay(3000, cts.Token);
+                await Task.Delay(5000, cts.Token);
             }
             catch (TaskCanceledException)
             {
             }
         }
+    }
+
+    private void HandleResponse(bool vpnRequested)
+    {
+        logger.LogInformation($"Vpn requested: {vpnRequested}; Running: {vpnService.Running}");
+        switch (vpnRequested)
+        {
+            case true when !vpnService.Running:
+                StartVpn();
+                break;
+            case false when vpnService.Running:
+                StopVpn();
+                break;
+        }
+    }
+
+    private void StartVpn()
+    {
+        logger.LogInformation("Starting vpn...");
+        vpnService.Start();
+        status.VpnEnabled = vpnService.Running;
+    }
+
+    private void StopVpn()
+    {
+        logger.LogInformation("Killing vpn...");
+        vpnService.Stop();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

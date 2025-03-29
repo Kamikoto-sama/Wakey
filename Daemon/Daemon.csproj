@@ -15,4 +15,8 @@
         <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Api.Contracts\Api.Contracts.csproj" />
+    </ItemGroup>
 </Project>
