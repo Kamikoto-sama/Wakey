@@ -1,4 +1,5 @@
-﻿using Api.Services;
+﻿using Api.Contracts;
+using Api.Services;
 
 namespace Api.Filters;
 

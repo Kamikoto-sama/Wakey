@@ -1,4 +1,6 @@
-﻿namespace Api.Services;
+﻿using Api.Contracts;
+
+namespace Api.Services;
 
 public partial class StatusManager
 {

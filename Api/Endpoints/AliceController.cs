@@ -1,6 +1,5 @@
 ﻿using Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileProviders;
 
 namespace Api.Endpoints;
 
@@ -8,7 +7,7 @@ namespace Api.Endpoints;
 public class AliceController(AliceService aliceService) : Controller
 {
     [HttpPost]
-    public IActionResult HandleCommand(AliceCommandDto commandDto)
+    public IActionResult HandleCommand([FromBody] AliceCommandDto commandDto)
     {
         var response = aliceService.HandleCommand(commandDto);
         return Ok(response);

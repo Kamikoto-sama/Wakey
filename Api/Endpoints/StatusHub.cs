@@ -1,4 +1,5 @@
-﻿using Api.Filters;
+﻿using Api.Contracts;
+using Api.Filters;
 using Api.Services;
 using Microsoft.AspNetCore.SignalR;
 

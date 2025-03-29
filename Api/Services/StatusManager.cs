@@ -1,9 +1,10 @@
-﻿using Api.Endpoints;
+﻿using Api.Contracts;
+using Api.Endpoints;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Services;
 
-public partial class StatusManager(ChargeService chargeService, IHubContext<StatusHub> statusHub, ILogger<StatusManager> log)
+public partial class StatusManager(IHubContext<StatusHub> statusHub, ILogger<StatusManager> log)
 {
     private readonly Status status = new();
 
@@ -20,7 +21,6 @@ public record Status
 {
     public bool AwakeRequested { get; set; }
     public bool PingSucceed { get; set; }
-    public BatteryDto? Battery { get; set; } = new();
     public bool ProxyConnected { get; set; }
     public DateTime ProxyLastUpdate { get; set; }
 
@@ -28,10 +28,4 @@ public record Status
     public bool VpnEnabled { get; set; }
     public bool DaemonConnected { get; set; }
     public DateTime DaemonLastUpdate { get; set; }
-}
-
-public enum ClientType
-{
-    Proxy,
-    Daemon
 }
