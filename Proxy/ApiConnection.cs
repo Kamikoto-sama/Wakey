@@ -69,6 +69,9 @@ public sealed class ApiConnection : IDisposable
         while (!cts.IsCancellationRequested)
         {
             reconnectionLock.WaitOne();
+            if (cts.IsCancellationRequested)
+                break;
+
             try
             {
                 if (State != HubConnectionState.Disconnected)
@@ -95,5 +98,6 @@ public sealed class ApiConnection : IDisposable
         cts.Cancel();
         cts.Dispose();
         hubConnection.Stop();
+        Debug.WriteLine($"{nameof(ApiConnection)} disposed");
     }
 }

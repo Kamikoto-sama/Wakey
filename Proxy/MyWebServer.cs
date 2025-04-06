@@ -19,7 +19,7 @@ public class MyWebServer(IServiceProvider serviceProvider) : WebServer(80, HttpP
         }
         catch (Exception e)
         {
-            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.Format());
         }
     }
 }

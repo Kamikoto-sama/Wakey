@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace Proxy;
 
-public class WakeOnLan
+public class WakeOnLan : IDisposable
 {
     private readonly byte[] magicPacket;
     private readonly UdpClient client;
@@ -28,7 +28,9 @@ public class WakeOnLan
     private static byte[] BuildMagicPacket()
     {
         var macBytes = new byte[6];
-        for (var i = 0; i < 6; i++) macBytes[i] = Convert.ToByte(Constants.DpcMac.Substring(i * 2, 2), 16);
+
+        for (var i = 0; i < 6; i++)
+            macBytes[i] = Convert.ToByte(Constants.DpcMac.Substring(i * 2, 2), 16);
 
         var packet = new MemoryStream();
         for (var i = 0; i < 6; i++)
@@ -37,4 +39,6 @@ public class WakeOnLan
             packet.Write(macBytes, 0, macBytes.Length);
         return packet.ToArray();
     }
+
+    public void Dispose() => client.Dispose();
 }
