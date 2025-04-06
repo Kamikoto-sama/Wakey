@@ -4,7 +4,9 @@ namespace Api.Services;
 
 public partial class StatusManager
 {
-    public void Awake() => Send(ClientType.Proxy, "Awake", true);
+    public void Awake() => Send(ClientType.Proxy, ProxyMethods.Awake, true);
+    
+    public void RebootProxy() => Send(ClientType.Proxy, ProxyMethods.Reboot, true);
 
     public void UpdateProxyStatus(ProxyStatusDto dto)
     {

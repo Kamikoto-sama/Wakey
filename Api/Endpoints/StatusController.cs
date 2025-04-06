@@ -18,6 +18,13 @@ public class StatusController(StatusManager statusManager) : Controller
         statusManager.Awake();
         return Ok();
     }
+    
+    [HttpPost("proxy/reboot")]
+    public IActionResult RebootProxy()
+    {
+        statusManager.RebootProxy();
+        return Ok();
+    }
 
     [HttpPost("vpn/enable")]
     public IActionResult EnableVpn()

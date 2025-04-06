@@ -6,13 +6,20 @@ using Microsoft.Extensions.Hosting;
 
 namespace Proxy;
 
-public class StateWorker(State state, Ping ping, WakeOnLan wakeOnLan, ApiConnection apiConnection) : BackgroundService
+public class StateWorker(
+    State state,
+    Ping ping,
+    WakeOnLan wakeOnLan,
+    ApiConnection apiConnection,
+    CancellationTokenSource shutdownToken
+) : BackgroundService
 {
     protected override void ExecuteAsync(CancellationToken stoppingToken)
     {
         try
         {
             apiConnection.On(ProxyMethods.Awake, [typeof(bool)], HandleAwake);
+            apiConnection.On(ProxyMethods.Reboot, [typeof(bool)], HandleReboot);
             apiConnection.Start();
         }
         catch (Exception e)
@@ -36,6 +43,13 @@ public class StateWorker(State state, Ping ping, WakeOnLan wakeOnLan, ApiConnect
 
             Thread.Sleep(5000);
         }
+    }
+
+    private void HandleReboot(object sender, object[] args)
+    {
+        var reboot = (bool)args[0];
+        if (reboot)
+            shutdownToken.Cancel();
     }
 
     private void HandleAwake(object sender, object[] args)

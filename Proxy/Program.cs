@@ -20,6 +20,7 @@ public class Program
 
             var builder = new HostBuilder();
             builder.ConfigureServices(ConfigureServices);
+            builder.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
 
             using var host = builder.Build();
 
