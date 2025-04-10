@@ -9,10 +9,10 @@ namespace Proxy;
 
 public static class WifiHelper
 {
-    public static void ConnectToWifi()
+    public static void ConnectToWifi(Settings settings)
     {
         var cts = new CancellationTokenSource(10 * 1000);
-        var success = WifiNetworkHelper.ConnectDhcp(Constants.WifiSsid, Constants.WifiPassword, requiresDateTime: true, token: cts.Token);
+        var success = WifiNetworkHelper.ConnectDhcp(settings.WifiSsid, settings.WifiPassword, requiresDateTime: true, token: cts.Token);
         if (!success)
             throw new Exception($"Can't get a proper IP address and DateTime, error: {NetworkHelper.Status}", NetworkHelper.HelperException);
 

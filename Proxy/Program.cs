@@ -1,24 +1,28 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using nanoFramework.Json;
 using nanoFramework.Runtime.Native;
 
 namespace Proxy;
 
 public class Program
 {
-    private static readonly CancellationTokenSource ShutdownTokenSource = new();
-
     public static void Main()
     {
         try
         {
             Debug.WriteLine("Hello from nanoFramework!");
-            WifiHelper.ConnectToWifi();
+            var settings = ReadSettings();
+            WifiHelper.ConnectToWifi(settings);
 
+            using var shutdownTokenSource = new CancellationTokenSource();
             var builder = new HostBuilder();
+            builder.Properties[nameof(Settings)] = settings;
+            builder.Properties[nameof(CancellationTokenSource)] = shutdownTokenSource;
             builder.ConfigureServices(ConfigureServices);
             builder.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
 
@@ -28,13 +32,12 @@ public class Program
             webServer.Start();
             Debug.WriteLine("HTTP server started");
 
-            host.StartAsync(ShutdownTokenSource.Token);
-            ShutdownTokenSource.Token.WaitHandle.WaitOne();
+            host.StartAsync(shutdownTokenSource.Token);
+            shutdownTokenSource.Token.WaitHandle.WaitOne();
             Debug.WriteLine("Shutdown token was cancelled");
 
             webServer.Stop();
-            host.StopAsync();
-            ShutdownTokenSource.Dispose();
+            host.StopAsync(CancellationToken.None);
         }
         catch (Exception e)
         {
@@ -44,9 +47,17 @@ public class Program
         Power.RebootDevice();
     }
 
+    private static Settings ReadSettings()
+    {
+        var settingsJson  = File.ReadAllText(Settings.FilePath);
+        Debug.WriteLine($"Read settings: {settingsJson}");
+        return (Settings)JsonConvert.DeserializeObject(settingsJson, typeof(Settings));
+    }
+
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton(typeof(CancellationTokenSource), ShutdownTokenSource);
+        services.AddSingleton(typeof(Settings), context.Properties[nameof(Settings)]);
+        services.AddSingleton(typeof(CancellationTokenSource), context.Properties[nameof(CancellationTokenSource)]);
         services.AddSingleton(typeof(Ping));
         services.AddSingleton(typeof(State));
         services.AddSingleton(typeof(WakeOnLan));

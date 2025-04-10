@@ -1,0 +1,9 @@
+﻿{
+  "serialport":"COM3",
+  "files": [
+    {
+      "DestinationFilePath": "I:\\settings.json",
+      "SourceFilePath": "settings.json"
+    }
+  ]
+}

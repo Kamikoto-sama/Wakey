@@ -16,7 +16,7 @@ public sealed class ApiConnection : IDisposable
     private readonly ManualResetEvent reconnectionLock;
     private readonly CancellationTokenSource cts;
 
-    public ApiConnection()
+    public ApiConnection(Settings settings)
     {
         var connectionOptions = new HubConnectionOptions
         {
@@ -24,7 +24,7 @@ public sealed class ApiConnection : IDisposable
             SslVerification = SslVerification.NoVerification,
             Certificate = new X509Certificate(Ssl.Certificate)
         };
-        var url = UrlBuilder.BuildStatusUrl(Constants.ApiUrl, Constants.ApiKey, ClientType.Proxy);
+        var url = UrlBuilder.BuildStatusUrl(settings.ApiUrl, settings.ApiKey, ClientType.Proxy);
         var connection = new HubConnection(url, options: connectionOptions);
         connection.Closed += OnClose;
         hubConnection = connection;

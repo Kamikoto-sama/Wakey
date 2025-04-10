@@ -11,11 +11,11 @@ public class WakeOnLan : IDisposable
     private readonly byte[] magicPacket;
     private readonly UdpClient client;
 
-    public WakeOnLan()
+    public WakeOnLan(Settings settings)
     {
-        magicPacket = BuildMagicPacket();
+        magicPacket = BuildMagicPacket(settings.DpcMac);
         client = new UdpClient { EnableBroadcast = true };
-        var endPoint = new IPEndPoint(IPAddress.Parse(Constants.DpcIp), 9);
+        var endPoint = new IPEndPoint(IPAddress.Parse(settings.DpcIp), 9);
         client.Connect(endPoint);
     }
 
@@ -25,12 +25,12 @@ public class WakeOnLan : IDisposable
         Debug.WriteLine("Magic packet sent");
     }
 
-    private static byte[] BuildMagicPacket()
+    private static byte[] BuildMagicPacket(string macAddress)
     {
         var macBytes = new byte[6];
 
         for (var i = 0; i < 6; i++)
-            macBytes[i] = Convert.ToByte(Constants.DpcMac.Substring(i * 2, 2), 16);
+            macBytes[i] = Convert.ToByte(macAddress.Substring(i * 2, 2), 16);
 
         var packet = new MemoryStream();
         for (var i = 0; i < 6; i++)

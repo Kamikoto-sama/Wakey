@@ -11,7 +11,8 @@ public class StateWorker(
     Ping ping,
     WakeOnLan wakeOnLan,
     ApiConnection apiConnection,
-    CancellationTokenSource shutdownToken
+    CancellationTokenSource shutdownToken,
+    Settings settings
 ) : BackgroundService
 {
     protected override void ExecuteAsync(CancellationToken stoppingToken)
@@ -32,7 +33,7 @@ public class StateWorker(
         {
             try
             {
-                state.PingSucceed = ping.Send(Constants.DpcIp);
+                state.PingSucceed = ping.Send(settings.DpcIp);
                 var dto = new ProxyStatusDto { PingSucceed = state.PingSucceed };
                 apiConnection.Send(StatusHubMethods.SyncProxyStatus, dto);
             }
