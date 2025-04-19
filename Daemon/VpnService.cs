@@ -6,10 +6,10 @@ namespace Daemon;
 
 public class VpnService : IDisposable
 {
-    private const string ServiceName = "WireGuardTunnel$DPC";
+    private const string TunnelName = "RU";
+    private const string ServiceName = "WireGuardTunnel$" + TunnelName;
     private const string WireGuardExePath = @"C:\Program Files\WireGuard\wireguard.exe";
-    private const string VpnConfigPath = @"C:\Program Files\WireGuard\DPC.conf";
-    private const string TunnelName = "DPC";
+    private const string VpnConfigPath = $@"C:\Program Files\WireGuard\{TunnelName}.conf";
 
     private readonly ILogger<VpnService> logger;
     private readonly ReaderWriterLockSlim serviceLock = new();
