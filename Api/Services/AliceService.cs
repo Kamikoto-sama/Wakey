@@ -7,11 +7,12 @@ public class AliceService(StatusManager statusManager)
 {
     public ResponseDto HandleCommand(AliceCommandDto commandDto)
     {
-        statusManager.Awake();
+        var pcOnline = statusManager.GetStatus().PingSucceed;
+        if (!pcOnline)
+            statusManager.Awake();
 
-        var command = commandDto.Request.Command;
-        var text = command.Length > 0 ? $"Попросила {command}" : "";
-        var response = new Response("Готово. " + text, true);
+        var responseText = pcOnline ? "Компутер уже включен." : "Готово.";
+        var response = new Response(responseText, true);
         return new ResponseDto(commandDto.Version, commandDto.Session, response);
     }
 }

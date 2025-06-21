@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Kami.Utils" Version="8.0.2" />
+      <PackageReference Include="Kami.Utils" Version="8.0.4" />
     </ItemGroup>
 
     <ItemGroup>

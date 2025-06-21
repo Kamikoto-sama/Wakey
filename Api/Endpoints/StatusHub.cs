@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Endpoints;
 
-public class StatusHub(StatusManager statusManager, ILogger<StatusHub> logger) : Hub
+public class StatusHub(StatusManager statusManager, LogManager logManager, ILogger<StatusHub> logger) : Hub
 {
     public override Task OnConnectedAsync()
     {
@@ -31,6 +31,12 @@ public class StatusHub(StatusManager statusManager, ILogger<StatusHub> logger) :
 
     public void SyncDaemonStatus(DaemonStatusDto daemonStatus) => statusManager.UpdateDaemonStatus(daemonStatus);
 
+    public void Log(LogDto logDto)
+    {
+        var clientType = GetClientType();
+        logManager.LogMessage(clientType, logDto);
+    }
+    
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         var clientType = GetClientType();

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Api.Endpoints;
 using Api.Filters;
 using Api.Services;
@@ -12,11 +13,13 @@ internal static class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Logging.AddConsole(options => options.TimestampFormat = "[yyyy.MM.dd HH:mm:ss.fff] ");
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddSignalR();
 
         builder.Services.AddSingleton<AliceService>();
         builder.Services.AddSingleton<StatusManager>();
+        builder.Services.AddSingleton<LogManager>();
 
         builder.WebHost.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
         var app = builder.Build();

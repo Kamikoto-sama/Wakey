@@ -10,6 +10,7 @@ public partial class StatusManager
 
     public void UpdateProxyStatus(ProxyStatusDto dto)
     {
+        status.ProxyConnected = true;
         status.ProxyLastUpdate = DateTime.UtcNow;
         status.PingSucceed = dto.PingSucceed;
     }
