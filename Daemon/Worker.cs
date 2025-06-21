@@ -2,16 +2,16 @@ using Api.Contracts;
 
 namespace Daemon;
 
-public class Worker(ILogger<Worker> logger, VpnService vpnService, ApiConnection connection)
+public class Worker(ILogger<Worker> logger, VpnService vpnService, SteamService steamService, ApiConnection connection)
     : IHostedService
 {
-    private readonly Status status = new();
     private readonly CancellationTokenSource cts = new();
     private Task? statusReporter;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        connection.On<bool>("Vpn", HandleVpn);
+        connection.On<bool>(DaemonMethods.Vpn, HandleVpn);
+        connection.On<bool>(DaemonMethods.Steam, HandleSteam);
         statusReporter = await Task.Factory.StartNew(StatusReporter, TaskCreationOptions.LongRunning);
     }
 
@@ -29,7 +29,11 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, ApiConnection
         {
             try
             {
-                status.VpnEnabled = vpnService.Running;
+                var status = new DaemonStatusDto
+                {
+                    VpnEnabled = vpnService.Running,
+                    SteamRunning = steamService.Running,
+                };
                 await connection.SendAsync(StatusHubMethods.SyncDaemonStatus, cts.Token, status);
             }
             catch (TaskCanceledException)
@@ -50,6 +54,22 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, ApiConnection
         }
     }
 
+    private void HandleSteam(bool enable)
+    {
+        logger.LogInformation($"Steam requested: {enable}; Running: {steamService.Running}");
+        try
+        {
+            if (enable)
+                steamService.Launch();
+            else
+                steamService.Kill();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to execute command on steam");
+        }
+    }
+    
     private void HandleVpn(bool vpnRequested)
     {
         logger.LogInformation($"Vpn requested: {vpnRequested}; Running: {vpnService.Running}");
@@ -68,7 +88,6 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, ApiConnection
     {
         logger.LogInformation("Starting vpn...");
         vpnService.Start();
-        status.VpnEnabled = vpnService.Running;
     }
 
     private void StopVpn()
@@ -76,9 +95,4 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, ApiConnection
         logger.LogInformation("Killing vpn...");
         vpnService.Stop();
     }
-}
-
-public record Status
-{
-    public bool VpnEnabled { get; set; }
 }

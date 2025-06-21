@@ -39,4 +39,18 @@ public class StatusController(StatusManager statusManager) : Controller
         statusManager.DisableVpn();
         return Ok();
     }
+
+    [HttpPost("steam/run")]
+    public IActionResult RunSteam()
+    {
+        statusManager.RunSteam();
+        return Ok();
+    }
+
+    [HttpPost("steam/kill")]
+    public IActionResult KillSteam()
+    {
+        statusManager.KillSteam();
+        return Ok();
+    }
 }

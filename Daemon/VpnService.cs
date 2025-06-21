@@ -83,8 +83,10 @@ public class VpnService : IDisposable
 
     private void UnregisterService()
     {
-        if (ServiceRegistered())
-            EvaluateWireGuardCommand(["/uninstalltunnelservice", TunnelName]);
+        if (!ServiceRegistered())
+            return;
+
+        EvaluateWireGuardCommand(["/uninstalltunnelservice", TunnelName]);
         logger.LogInformation("Service unregistered");
     }
 
