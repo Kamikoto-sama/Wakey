@@ -5,11 +5,11 @@ using System.Net.Sockets;
 using System.Threading;
 using nanoFramework.Networking;
 
-namespace Proxy;
+namespace Proxy.Utils;
 
 public static class WifiHelper
 {
-    public static void ConnectToWifi(Settings settings)
+    public static void ConnectToWifi(Settings.Settings settings)
     {
         var cts = new CancellationTokenSource(10 * 1000);
         var success = WifiNetworkHelper.ConnectDhcp(settings.WifiSsid, settings.WifiPassword, requiresDateTime: true, token: cts.Token);

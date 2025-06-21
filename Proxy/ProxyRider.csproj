@@ -69,20 +69,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="..\Api.Contracts\ClientType.cs">
-        <Link>ClientType.cs</Link>
-      </Compile>
-      <Compile Include="..\Api.Contracts\ProxyMethods.cs">
-        <Link>ProxyMethods.cs</Link>
-      </Compile>
-      <Compile Include="..\Api.Contracts\ProxyStatusDto.cs">
-        <Link>ProxyStatusDto.cs</Link>
-      </Compile>
-      <Compile Include="..\Api.Contracts\StatusHubMethods.cs">
-        <Link>StatusHubMethods.cs</Link>
-      </Compile>
-      <Compile Include="..\Api.Contracts\UrlBuilder.cs">
-        <Link>UrlBuilder.cs</Link>
-      </Compile>
+      <ProjectReference Include="..\Api.Contracts\Api.Contracts.csproj" />
     </ItemGroup>
 </Project>

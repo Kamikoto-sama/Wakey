@@ -4,8 +4,13 @@ using System.IO;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using nanoFramework.Json;
+using nanoFramework.Logging.Debug;
 using nanoFramework.Runtime.Native;
+using Proxy.Logging;
+using Proxy.Services;
+using Proxy.Utils;
 
 namespace Proxy;
 
@@ -16,28 +21,7 @@ public class Program
         try
         {
             Debug.WriteLine("Hello from nanoFramework!");
-            var settings = ReadSettings();
-            WifiHelper.ConnectToWifi(settings);
-
-            using var shutdownTokenSource = new CancellationTokenSource();
-            var builder = new HostBuilder();
-            builder.Properties[nameof(Settings)] = settings;
-            builder.Properties[nameof(CancellationTokenSource)] = shutdownTokenSource;
-            builder.ConfigureServices(ConfigureServices);
-            builder.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
-
-            using var host = builder.Build();
-
-            var webServer = (MyWebServer)host.Services.GetRequiredService(typeof(MyWebServer));
-            webServer.Start();
-            Debug.WriteLine("HTTP server started");
-
-            host.StartAsync(shutdownTokenSource.Token);
-            shutdownTokenSource.Token.WaitHandle.WaitOne();
-            Debug.WriteLine("Shutdown token was cancelled");
-
-            webServer.Stop();
-            host.StopAsync(CancellationToken.None);
+            Run();
         }
         catch (Exception e)
         {
@@ -47,22 +31,62 @@ public class Program
         Power.RebootDevice();
     }
 
-    private static Settings ReadSettings()
+    private static void Run()
     {
-        var settingsJson  = File.ReadAllText(Settings.FilePath);
+        var settings = ReadSettings();
+        WifiHelper.ConnectToWifi(settings);
+
+        using var apiConnection = new ApiConnection(settings);
+        apiConnection.Start();
+        var logger = BuildLogger(apiConnection);
+
+        using var shutdownTokenSource = new CancellationTokenSource();
+        var builder = new HostBuilder();
+        builder.Properties[nameof(Settings.Settings)] = settings;
+        builder.Properties[nameof(CancellationTokenSource)] = shutdownTokenSource;
+        builder.Properties[nameof(ApiConnection)] = apiConnection;
+        builder.Properties[nameof(ILogger)] = logger;
+        builder.ConfigureServices(ConfigureServices);
+        builder.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
+
+        using var host = builder.Build();
+
+        var webServer = (MyWebServer)host.Services.GetRequiredService(typeof(MyWebServer));
+        webServer.Start();
+        logger.LogDebug($"HTTP server started on port {webServer.Port}: {webServer.IsRunning}");
+
+        host.StartAsync(shutdownTokenSource.Token);
+        shutdownTokenSource.Token.WaitHandle.WaitOne();
+        logger.LogInformation("Shutdown token was cancelled");
+
+        webServer.Stop();
+        host.StopAsync(CancellationToken.None);
+    }
+
+    private static Settings.Settings ReadSettings()
+    {
+        var settingsJson = File.ReadAllText(Settings.Settings.FilePath);
         Debug.WriteLine($"Read settings: {settingsJson}");
-        return (Settings)JsonConvert.DeserializeObject(settingsJson, typeof(Settings));
+        return (Settings.Settings)JsonConvert.DeserializeObject(settingsJson, typeof(Settings.Settings));
+    }
+
+    private static CompositeLogger BuildLogger(ApiConnection apiConnection)
+    {
+        var apiLogger = new ApiLogger(apiConnection, LogLevel.Information);
+        var debugLogger = new DebugLogger("Proxy");
+        return new CompositeLogger(debugLogger, apiLogger);
     }
 
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton(typeof(Settings), context.Properties[nameof(Settings)]);
+        services.AddSingleton(typeof(Settings.Settings), context.Properties[nameof(Settings.Settings)]);
         services.AddSingleton(typeof(CancellationTokenSource), context.Properties[nameof(CancellationTokenSource)]);
+        services.AddSingleton(typeof(ApiConnection), context.Properties[nameof(ApiConnection)]);
+        services.AddSingleton(typeof(ILogger), context.Properties[nameof(ILogger)]);
         services.AddSingleton(typeof(Ping));
         services.AddSingleton(typeof(State));
         services.AddSingleton(typeof(WakeOnLan));
         services.AddSingleton(typeof(MyWebServer));
-        services.AddSingleton(typeof(ApiConnection));
         services.AddHostedService(typeof(StateWorker));
     }
 }

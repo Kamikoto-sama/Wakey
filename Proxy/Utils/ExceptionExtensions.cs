@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 
-namespace Proxy;
+namespace Proxy.Utils;
 
-public static class Utils
+public static class ExceptionExtensions
 {
     public static string Format(this Exception? exception)
     {

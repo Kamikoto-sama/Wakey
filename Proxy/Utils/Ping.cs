@@ -2,10 +2,11 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using Microsoft.Extensions.Logging;
 
-namespace Proxy;
+namespace Proxy.Utils;
 
-public class Ping : IDisposable
+public class Ping(ILogger logger) : IDisposable
 {
     private static readonly byte[] EchoRequestPacket = [8, 0, 247, 255, 0, 0, 0, 0];
     private readonly Socket socket = new(AddressFamily.InterNetwork, SocketType.Raw, ProtocolType.Icmp) { ReceiveTimeout = 3000 };
@@ -24,7 +25,6 @@ public class Ping : IDisposable
         }
         catch (SocketException e) when(e.ErrorCode == (int)SocketError.TimedOut)
         {
-            Debug.WriteLine("Ping timed out");
             return false;
         }
     }

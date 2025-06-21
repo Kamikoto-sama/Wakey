@@ -1,4 +1,4 @@
-﻿namespace Proxy;
+﻿namespace Proxy.Utils;
 
 public static class Ssl
 {

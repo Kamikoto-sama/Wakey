@@ -5,8 +5,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using Api.Contracts;
 using nanoFramework.SignalR.Client;
+using Proxy.Utils;
 
-namespace Proxy;
+namespace Proxy.Services;
 
 public sealed class ApiConnection : IDisposable
 {
@@ -16,7 +17,7 @@ public sealed class ApiConnection : IDisposable
     private readonly ManualResetEvent reconnectionLock;
     private readonly CancellationTokenSource cts;
 
-    public ApiConnection(Settings settings)
+    public ApiConnection(Settings.Settings settings)
     {
         var connectionOptions = new HubConnectionOptions
         {

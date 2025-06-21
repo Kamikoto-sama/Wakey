@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proxy</title>
+</head>
+<body>
+<div id="time"></div>
+<div>Status: %pingStatus%</div>
+<button id="wake" onclick="wake()">Wake</button>
+<br>
+<button id="reboot" onclick="reboot()">Reboot</button>
+<script>
+    async function wake() {
+        const wakeBtn = document.getElementById('wake');
+        wakeBtn.disabled = true;
+        await fetch("/wake", {method: "POST"});
+        wakeBtn.disabled = false;
+    }
+
+    async function reboot() {
+        const rebootBtn = document.getElementById('reboot');
+        rebootBtn.disabled = true;
+        await fetch("/reboot", {method: "POST"});
+        rebootBtn.disabled = false;
+    }
+
+    const localTime = new Date('%timestamp% UTC');
+    const timeLabel = document.getElementById('time');
+    timeLabel.innerText = localTime.toLocaleString('ru-ru').replace(',', '');
+</script>
+</body>
+</html>

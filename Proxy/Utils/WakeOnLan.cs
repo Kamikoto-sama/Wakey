@@ -3,26 +3,29 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using Microsoft.Extensions.Logging;
 
-namespace Proxy;
+namespace Proxy.Utils;
 
 public class WakeOnLan : IDisposable
 {
+    private readonly ILogger logger;
     private readonly byte[] magicPacket;
     private readonly UdpClient client;
 
-    public WakeOnLan(Settings settings)
+    public WakeOnLan(Settings.Settings settings, ILogger logger)
     {
-        magicPacket = BuildMagicPacket(settings.DpcMac);
+        this.logger = logger;
+        magicPacket = BuildMagicPacket(settings.PcMac);
         client = new UdpClient { EnableBroadcast = true };
-        var endPoint = new IPEndPoint(IPAddress.Parse(settings.DpcIp), 9);
+        var endPoint = new IPEndPoint(IPAddress.Parse(settings.PcIp), 9);
         client.Connect(endPoint);
     }
 
     public void SendMagicPacket()
     {
         client.Send(magicPacket);
-        Debug.WriteLine("Magic packet sent");
+        logger.LogInformation("Magic packet sent");
     }
 
     private static byte[] BuildMagicPacket(string macAddress)
