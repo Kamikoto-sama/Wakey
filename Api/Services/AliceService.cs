@@ -9,7 +9,11 @@ public class AliceService(StatusManager statusManager)
     {
         var pcOnline = statusManager.GetStatus().PingSucceed;
         if (!pcOnline)
+        {
+            statusManager.DisableVpn();
+            statusManager.KillSteam();
             statusManager.Awake();
+        }
 
         var responseText = pcOnline ? "Компутер уже включен." : "Готово.";
         var response = new Response(responseText, true);

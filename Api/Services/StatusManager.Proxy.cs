@@ -17,5 +17,9 @@ public partial class StatusManager
 
     public void ProxyConnected() => status.ProxyConnected = true;
 
-    public void ProxyDisconnected() => status.ProxyConnected = false;
+    public void ProxyDisconnected()
+    {
+        status.ProxyConnected = false;
+        status.PingSucceed = false;
+    }
 }

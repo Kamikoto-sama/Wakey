@@ -16,15 +16,3 @@ public partial class StatusManager(IHubContext<StatusHub> statusHub, ILogger<Sta
         log.LogInformation("Called {}({}) of {}", method, value, clientType);
     }
 }
-
-public record Status
-{
-    public bool PingSucceed { get; set; }
-    public bool ProxyConnected { get; set; }
-    public DateTime ProxyLastUpdate { get; set; }
-
-    public bool VpnEnabled { get; set; }
-    public bool SteamRunning { get; set; }
-    public bool DaemonConnected { get; set; }
-    public DateTime DaemonLastUpdate { get; set; }
-}

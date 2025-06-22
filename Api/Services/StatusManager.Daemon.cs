@@ -4,13 +4,13 @@ namespace Api.Services;
 
 public partial class StatusManager
 {
-    public void EnableVpn() => Send(ClientType.Daemon, DaemonMethods.Vpn, true);
+    public void EnableVpn() => status.VpnRequested = true;
 
-    public void DisableVpn() => Send(ClientType.Daemon, DaemonMethods.Vpn, false);
-    
-    public void RunSteam() => Send(ClientType.Daemon, DaemonMethods.Steam, true);
+    public void DisableVpn() => status.VpnRequested = false;
 
-    public void KillSteam() => Send(ClientType.Daemon, DaemonMethods.Steam, false);
+    public void RunSteam() => status.SteamRequested = true;
+
+    public void KillSteam() => status.SteamRequested = false;
 
     public void UpdateDaemonStatus(DaemonStatusDto dto)
     {
@@ -18,9 +18,19 @@ public partial class StatusManager
         status.DaemonLastUpdate = DateTime.UtcNow;
         status.VpnEnabled = dto.VpnEnabled;
         status.SteamRunning = dto.SteamRunning;
+
+        if (status.VpnRequested != dto.VpnEnabled)
+            Send(ClientType.Daemon, DaemonMethods.Vpn, status.VpnRequested);
+        if (status.SteamRequested && !dto.SteamRunning)
+            Send(ClientType.Daemon, DaemonMethods.Steam, true);
     }
 
     public void DaemonConnected() => status.DaemonConnected = true;
-    
-    public void DaemonDisconnected() => status.DaemonConnected = false;
+
+    public void DaemonDisconnected()
+    {
+        status.DaemonConnected = false;
+        status.VpnEnabled = false;
+        status.SteamRunning = false;
+    }
 }
