@@ -17,10 +17,22 @@ builder.Services.AddSingleton<VpnService>();
 builder.Services.AddSingleton<SteamService>();
 builder.Services.AddHostedService<Worker>();
 
-var host = builder.Build();
+using var host = builder.Build();
+var logger = host.Services.GetRequiredService<ILogger<Program>>();
+AppDomain.CurrentDomain.UnhandledException +=
+    (_, args) => logger.LogError(args.ExceptionObject as Exception, "Unhandled exception");
+TaskScheduler.UnobservedTaskException += 
+    (_, args) => logger.LogError(args.Exception, "Unobserved task exception");
 
-var apiConnection = host.Services.GetRequiredService<ApiConnection>();
-apiLoggerProvider.ApiConnection = apiConnection;
-await apiConnection.StartAsync(CancellationToken.None);
+try
+{
+    var apiConnection = host.Services.GetRequiredService<ApiConnection>();
+    apiLoggerProvider.ApiConnection = apiConnection;
+    await apiConnection.StartAsync(CancellationToken.None);
 
-await host.RunAsync();
+    await host.RunAsync();
+}
+catch (Exception e)
+{
+    logger.LogError(e, "Failed to start Daemon");
+}
