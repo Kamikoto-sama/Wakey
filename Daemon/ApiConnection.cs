@@ -10,11 +10,7 @@ public sealed class ApiConnection : IDisposable
     private readonly ILogger<ApiConnection> logger;
     private readonly HubConnection hubConnection;
     private HubConnectionState State => hubConnection.State;
-    private readonly AsyncManualResetEvent reconnectionLock;
-    private readonly CancellationTokenSource cts;
     private readonly string url;
-
-    private Task? reconnectionTask;
 
     public ApiConnection(Settings settings, ILogger<ApiConnection> logger)
     {
@@ -25,20 +21,26 @@ public sealed class ApiConnection : IDisposable
             .WithAutomaticReconnect(new ConstantDelayRetryPolicy(5.Seconds()))
             .Build();
         hubConnection.Closed += OnClosed;
-
-        cts = new CancellationTokenSource();
-        reconnectionLock = new AsyncManualResetEvent(false);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (State != HubConnectionState.Disconnected)
             return;
-        if (reconnectionTask != null)
-            reconnectionTask = Task.Factory.StartNew(Reconnect, TaskCreationOptions.LongRunning).Unwrap();
 
         logger.LogInformation("Connecting to: {Url}", url);
-        await hubConnection.StartAsync(cancellationToken);
+        while (State == HubConnectionState.Disconnected)
+        {
+            try
+            {
+                await hubConnection.StartAsync(cancellationToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to connect to {Url}", url);
+                await Task.Delay(1000, cancellationToken);
+            }
+        }
         logger.LogInformation("Connected state: {HubConnectionState}", State);
     }
 
@@ -55,43 +57,11 @@ public sealed class ApiConnection : IDisposable
     private Task OnClosed(Exception? exception)
     {
         logger.LogError(exception, "Connection closed");
-        reconnectionLock.Set();
         return Task.CompletedTask;
-    }
-
-    private async Task Reconnect()
-    {
-        while (!cts.IsCancellationRequested)
-        {
-            await reconnectionLock.WaitAsync();
-            if (cts.IsCancellationRequested)
-                break;
-
-            try
-            {
-                if (State != HubConnectionState.Disconnected)
-                {
-                    reconnectionLock.Reset();
-                    continue;
-                }
-
-                logger.LogWarning("Reconnecting...");
-                await hubConnection.StopAsync();
-                await StartAsync(CancellationToken.None);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Reconnect failed");
-            }
-
-            Thread.Sleep(5000);
-        }
     }
 
     public void Dispose()
     {
-        cts.Cancel();
-        cts.Dispose();
         hubConnection.StopAsync();
     }
 }
