@@ -11,7 +11,6 @@ public class AliceService(StatusManager statusManager)
         if (!pcOnline)
         {
             statusManager.DisableVpn();
-            statusManager.KillSteam();
             statusManager.Awake();
         }
 
