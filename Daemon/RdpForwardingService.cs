@@ -6,10 +6,11 @@ namespace Daemon;
 public class RdpForwardingService : IDisposable
 {
     private const int DefaultRdpPort = 3389;
-    
+
+    private readonly Lock @lock = new();
     private readonly ILogger<RdpForwardingService> logger;
     private readonly SshClient sshClient;
-    private readonly ForwardedPortRemote forwardedPort;
+    private readonly uint remotePort;
 
     public RdpForwardingService(ILogger<RdpForwardingService> logger, IConfiguration config)
     {
@@ -19,24 +20,29 @@ public class RdpForwardingService : IDisposable
         var pkFile = new PrivateKeyFile(options.KeyFilePath);
         sshClient = new SshClient(options.Host, options.User, pkFile);
         sshClient.KeepAliveInterval = 30.Seconds();
-        sshClient.ErrorOccurred += (_, args) => logger.LogError(args.Exception, "SSH error"); 
-        forwardedPort = new ForwardedPortRemote(options.Port, "localhost", DefaultRdpPort);
-        forwardedPort.Exception += (_, args) => logger.LogError(args.Exception, "Port forwarding error");
+        sshClient.ErrorOccurred += (_, args) => logger.LogError(args.Exception, "SSH error");
+        remotePort = options.Port;
     }
 
-    public bool Running => forwardedPort.IsStarted;
+    public bool Running => sshClient.IsConnected && sshClient.ForwardedPorts.All(p => p.IsStarted);
 
     public void Start()
     {
-        if (Running)
-            return;
-        if (!sshClient.IsConnected)
-            sshClient.Connect();
-        if (!sshClient.ForwardedPorts.Any())
-            sshClient.AddForwardedPort(forwardedPort);
+        lock (@lock)
+        {
+            if (Running)
+                return;
+            if (!sshClient.IsConnected)
+                sshClient.Connect();
 
-        forwardedPort.Start();
-        logger.LogInformation("RDP port forwarding started");
+            StopPortForwarding();
+            var forwardedPort = new ForwardedPortRemote(remotePort, "localhost", DefaultRdpPort);
+            forwardedPort.Exception += (_, args) => logger.LogError(args.Exception, "Port forwarding error");
+            sshClient.AddForwardedPort(forwardedPort);
+            forwardedPort.Start();
+
+            logger.LogInformation("RDP port forwarding started");
+        }
     }
 
     public void Stop()
@@ -44,16 +50,39 @@ public class RdpForwardingService : IDisposable
         if (!Running)
             return;
 
-        forwardedPort.Stop();
+        StopPortForwarding();
         sshClient.Disconnect();
         logger.LogInformation("RDP port forwarding stopped");
     }
 
     public void Dispose()
     {
-        Stop();
-        forwardedPort.Dispose();
+        StopPortForwarding();
         sshClient.Dispose();
+    }
+
+    private void StopPortForwarding()
+    {
+        var ports = sshClient.ForwardedPorts.ToArray();
+        foreach (var forwardedPort in ports)
+        {
+            try
+            {
+                sshClient.RemoveForwardedPort(forwardedPort);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "");
+            }
+            try
+            {
+                forwardedPort.Dispose();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "");
+            }
+        }
     }
 }
 
