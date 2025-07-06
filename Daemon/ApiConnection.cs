@@ -41,6 +41,7 @@ public sealed class ApiConnection : IDisposable
                 await Task.Delay(1000, cancellationToken);
             }
         }
+
         logger.LogInformation("Connected state: {HubConnectionState}", State);
     }
 
@@ -56,7 +57,8 @@ public sealed class ApiConnection : IDisposable
 
     private Task OnClosed(Exception? exception)
     {
-        logger.LogError(exception, "Connection closed");
+        if (exception != null)
+            logger.LogError(exception, "Connection closed");
         return Task.CompletedTask;
     }
 

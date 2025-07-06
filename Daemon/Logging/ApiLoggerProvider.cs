@@ -6,13 +6,13 @@ public class ApiLoggerProvider : ILoggerProvider
 {
     private readonly DebugLoggerProvider debugLoggerProvider = new();
 
-    public ApiConnection? ApiConnection { get; set; }
+    public LogsService? LogsService { get; set; }
 
     public ILogger CreateLogger(string categoryName)
     {
-        return ApiConnection == null
+        return LogsService == null
             ? debugLoggerProvider.CreateLogger(categoryName)
-            : new ApiLogger(ApiConnection);
+            : new ApiLogger(LogsService);
     }
 
     public void Dispose()

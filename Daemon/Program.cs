@@ -15,6 +15,8 @@ builder.Services.AddSingleton(settings);
 builder.Services.AddWindowsService();
 builder.Services.AddSingleton<RdpForwardingService>();
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddSingleton<LogsService>();
+builder.Services.AddHostedService<LogsService>(p => p.GetRequiredService<LogsService>());
 
 using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<Program>>();
@@ -26,7 +28,8 @@ TaskScheduler.UnobservedTaskException +=
 try
 {
     var apiConnection = host.Services.GetRequiredService<ApiConnection>();
-    apiLoggerProvider.ApiConnection = apiConnection;
+    var logsService = host.Services.GetRequiredService<LogsService>();
+    apiLoggerProvider.LogsService = logsService;
     await apiConnection.StartAsync(CancellationToken.None);
 
     await host.RunAsync();

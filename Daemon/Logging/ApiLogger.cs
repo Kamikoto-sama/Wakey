@@ -2,13 +2,16 @@
 
 namespace Daemon.Logging;
 
-public class ApiLogger(ApiConnection apiConnection) : ILogger
+public class ApiLogger(LogsService logsService) : ILogger
 {
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+        Func<TState, Exception?, string> formatter)
     {
         var message = formatter(state, exception);
+        if (exception != null)
+            message += Environment.NewLine + exception;
         var log = new LogDto { Level = (int)logLevel, Message = message };
-        _ = apiConnection.SendAsync(StatusHubMethods.Log, CancellationToken.None, log);
+        logsService.SendLog(log);
     }
 
     public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Information;
