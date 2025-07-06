@@ -13,8 +13,6 @@ public partial class StatusManager
         status.DaemonConnected = true;
         status.DaemonLastUpdate = DateTime.UtcNow;
         status.VpnEnabled = dto.VpnEnabled;
-        status.SteamRunning = dto.SteamRunning;
-        status.LoggedIn = dto.LoggedIn;
 
         if (status.VpnRequested != dto.VpnEnabled)
             Send(ClientType.Daemon, DaemonMethods.Vpn, status.VpnRequested);
@@ -26,6 +24,5 @@ public partial class StatusManager
     {
         status.DaemonConnected = false;
         status.VpnEnabled = false;
-        status.SteamRunning = false;
     }
 }

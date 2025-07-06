@@ -8,8 +8,6 @@ public record Status
 
     public bool VpnRequested { get; set; }
     public bool VpnEnabled { get; set; }
-    public bool SteamRunning { get; set; }
-    public bool LoggedIn { get; set; }
     public bool DaemonConnected { get; set; }
     public DateTime DaemonLastUpdate { get; set; }
 }
