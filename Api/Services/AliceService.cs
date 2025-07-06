@@ -10,7 +10,7 @@ public class AliceService(StatusManager statusManager)
         var pcOnline = statusManager.GetStatus().PingSucceed;
         if (!pcOnline)
         {
-            statusManager.DisableVpn();
+            statusManager.DisableRdpForwarding();
             statusManager.Awake();
         }
 

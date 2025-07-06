@@ -9,11 +9,12 @@
 
     <ItemGroup>
         <PackageReference Include="Kami.Utils" Version="8.0.4" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.7"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.17" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
         <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0"/>
+        <PackageReference Include="SSH.NET" Version="2025.0.0" />
     </ItemGroup>
 
     <ItemGroup>

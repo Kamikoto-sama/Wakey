@@ -26,17 +26,17 @@ public class StatusController(StatusManager statusManager) : Controller
         return Ok();
     }
 
-    [HttpPost("vpn/enable")]
-    public IActionResult EnableVpn()
+    [HttpPost("rdp-forwarding/enable")]
+    public IActionResult EnableRdpForwarding()
     {
-        statusManager.EnableVpn();
+        statusManager.EnableRdpForwarding();
         return Ok();
     }
 
-    [HttpPost("vpn/disable")]
-    public IActionResult DisableVpn()
+    [HttpPost("rdp-forwarding/disable")]
+    public IActionResult DisableRdpForwarding()
     {
-        statusManager.DisableVpn();
+        statusManager.DisableRdpForwarding();
         return Ok();
     }
 }

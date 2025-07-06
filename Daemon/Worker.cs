@@ -1,23 +1,25 @@
 using Api.Contracts;
+using Kami.Utils;
 
 namespace Daemon;
 
-public class Worker(ILogger<Worker> logger, VpnService vpnService, SteamService steamService, ApiConnection connection)
+public class Worker(ILogger<Worker> logger, RdpForwardingService rdpForwardingService, ApiConnection connection)
     : IHostedService
 {
+    private const int StatusUpdateInterval = 5000;
+
     private readonly CancellationTokenSource cts = new();
     private Task? statusReporter;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        connection.On<bool>(DaemonMethods.Vpn, HandleVpn);
-        connection.On<bool>(DaemonMethods.Steam, HandleSteam);
+        connection.On<bool>(DaemonMethods.RdpForwarding, HandleRdpForwarding);
         statusReporter = await Task.Factory.StartNew(StatusReporter, TaskCreationOptions.LongRunning);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        vpnService.Stop();
+        rdpForwardingService.Stop();
         await cts.CancelAsync();
         if (statusReporter != null)
             await statusReporter;
@@ -29,11 +31,7 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, SteamService 
         {
             try
             {
-                var status = new DaemonStatusDto
-                {
-                    VpnEnabled = vpnService.Running,
-                    SteamRunning = steamService.Running,
-                };
+                var status = new DaemonStatusDto { RdpForwardingEnabled = rdpForwardingService.Running };
                 await connection.SendAsync(StatusHubMethods.SyncDaemonStatus, cts.Token, status);
             }
             catch (TaskCanceledException)
@@ -44,55 +42,24 @@ public class Worker(ILogger<Worker> logger, VpnService vpnService, SteamService 
                 logger.LogError(e, "Failed to send status");
             }
 
-            try
-            {
-                await Task.Delay(5000, cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-            }
+            await Task.Delay(StatusUpdateInterval, cts.Token).HandleCancellation();
         }
     }
 
-    private void HandleSteam(bool enable)
+    private void HandleRdpForwarding(bool enable)
     {
-        logger.LogInformation($"Steam requested: {enable}; Running: {steamService.Running}");
         try
         {
+            var running = rdpForwardingService.Running;
+            logger.LogInformation("RDP forwarding requested: {Enable}; Running: {Running}", enable, running);
             if (enable)
-                steamService.Launch();
+                rdpForwardingService.Start();
             else
-                steamService.Kill();
+                rdpForwardingService.Stop();
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to execute command on steam");
+            logger.LogError(e, "Failed to execute command on RDP forwarding");
         }
-    }
-    
-    private void HandleVpn(bool vpnRequested)
-    {
-        logger.LogInformation($"Vpn requested: {vpnRequested}; Running: {vpnService.Running}");
-        switch (vpnRequested)
-        {
-            case true when !vpnService.Running:
-                StartVpn();
-                break;
-            case false when vpnService.Running:
-                StopVpn();
-                break;
-        }
-    }
-
-    private void StartVpn()
-    {
-        logger.LogInformation("Starting vpn...");
-        vpnService.Start();
-    }
-
-    private void StopVpn()
-    {
-        logger.LogInformation("Killing vpn...");
-        vpnService.Stop();
     }
 }

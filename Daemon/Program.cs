@@ -13,8 +13,7 @@ var settings = builder.Configuration.Get<Settings>()!;
 builder.Services.AddSingleton<ApiConnection>();
 builder.Services.AddSingleton(settings);
 builder.Services.AddWindowsService();
-builder.Services.AddSingleton<VpnService>();
-builder.Services.AddSingleton<SteamService>();
+builder.Services.AddSingleton<RdpForwardingService>();
 builder.Services.AddHostedService<Worker>();
 
 using var host = builder.Build();
