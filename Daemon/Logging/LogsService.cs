@@ -22,21 +22,21 @@ public class LogsService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await foreach (var log in logsQueue.Reader.ReadAllAsync(stoppingToken))
-            await Send(log,  stoppingToken);
+            await Send(log, stoppingToken);
     }
 
-    private async Task Send(LogDto log,  CancellationToken cancellationToken)
+    private async Task Send(LogDto log, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await apiConnection.SendAsync(StatusHubMethods.Log, cancellationToken, log);
-                return;
+                if (await apiConnection.TrySendAsync(StatusHubMethods.Log, cancellationToken, log))
+                    return;
             }
             catch (Exception)
             {
-                await Task.Delay(RetryDelay,  cancellationToken).HandleCancellation();
+                await Task.Delay(RetryDelay, cancellationToken).HandleCancellation();
             }
         }
     }

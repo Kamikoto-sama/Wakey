@@ -45,12 +45,13 @@ public sealed class ApiConnection : IDisposable
         logger.LogInformation("Connected state: {HubConnectionState}", State);
     }
 
-    public async Task SendAsync(string methodName, CancellationToken token, params object[] args)
+    public async Task<bool> TrySendAsync(string methodName, CancellationToken token, params object[] args)
     {
         if (State != HubConnectionState.Connected)
-            return;
+            return false;
 
         await hubConnection.SendCoreAsync(methodName, args, token);
+        return true;
     }
 
     public IDisposable On<T>(string methodName, Action<T> handler) => hubConnection.On(methodName, handler);

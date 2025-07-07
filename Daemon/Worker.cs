@@ -32,7 +32,7 @@ public class Worker(ILogger<Worker> logger, RdpForwardingService rdpForwardingSe
             try
             {
                 var status = new DaemonStatusDto { RdpForwardingEnabled = rdpForwardingService.Running };
-                await connection.SendAsync(StatusHubMethods.SyncDaemonStatus, cts.Token, status);
+                await connection.TrySendAsync(StatusHubMethods.SyncDaemonStatus, cts.Token, status);
             }
             catch (TaskCanceledException)
             {
