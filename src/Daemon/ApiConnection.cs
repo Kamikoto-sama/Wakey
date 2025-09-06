@@ -12,7 +12,7 @@ public sealed class ApiConnection : IDisposable
     private HubConnectionState State => hubConnection.State;
     private readonly string url;
 
-    public ApiConnection(Settings settings, ILogger<ApiConnection> logger)
+    public ApiConnection(DaemonSettings settings, ILogger<ApiConnection> logger)
     {
         this.logger = logger;
         url = UrlBuilder.BuildStatusUrl(settings.ApiUrl, settings.ApiKey, ClientType.Daemon);

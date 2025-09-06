@@ -8,7 +8,7 @@ builder.Logging.AddFile(logsFilePath, retainedFileCountLimit: 7);
 var apiLoggerProvider = new ApiLoggerProvider();
 builder.Logging.AddProvider(apiLoggerProvider);
 
-var settings = builder.Configuration.Get<Settings>()!;
+var settings = builder.Configuration.Get<DaemonSettings>()!;
 
 builder.Services.AddSingleton<ApiConnection>();
 builder.Services.AddSingleton(settings);
