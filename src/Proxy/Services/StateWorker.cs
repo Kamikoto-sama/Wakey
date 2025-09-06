@@ -14,7 +14,7 @@ public class StateWorker(
     Ping ping,
     WakeOnLan wakeOnLan,
     ApiConnection apiConnection,
-    Settings.Settings settings,
+    ProxySettings settings,
     ILogger logger
 ) : BackgroundService
 {

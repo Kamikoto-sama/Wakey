@@ -9,7 +9,7 @@ namespace Proxy.Utils;
 
 public static class WifiHelper
 {
-    public static void ConnectToWifi(Settings.Settings settings)
+    public static void ConnectToWifi(ProxySettings settings)
     {
         var cts = new CancellationTokenSource(10 * 1000);
         var success = WifiNetworkHelper.ConnectDhcp(settings.WifiSsid, settings.WifiPassword, requiresDateTime: true, token: cts.Token);

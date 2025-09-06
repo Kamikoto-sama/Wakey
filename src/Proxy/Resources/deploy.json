@@ -8,6 +8,10 @@
     {
       "DestinationFilePath": "I:\\index.html",
       "SourceFilePath": "index.html"
+    },
+    {
+      "DestinationFilePath": "I:\\ssl.cert",
+      "SourceFilePath": "ssl.cert"
     }
   ]
 }

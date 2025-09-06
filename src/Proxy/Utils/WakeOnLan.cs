@@ -13,7 +13,7 @@ public class WakeOnLan : IDisposable
     private readonly byte[] magicPacket;
     private readonly UdpClient client;
 
-    public WakeOnLan(Settings.Settings settings, ILogger logger)
+    public WakeOnLan(ProxySettings settings, ILogger logger)
     {
         this.logger = logger;
         magicPacket = BuildMagicPacket(settings.PcMac);

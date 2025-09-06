@@ -1,8 +1,7 @@
-﻿namespace Proxy.Settings;
+﻿namespace Proxy;
 
-public class Settings
+public class ProxySettings
 {
-    public const string FilePath = "I:\\settings.json";
 
     public string PcMac { get; init; } = null!;
     public string PcIp { get; init; } = null!;

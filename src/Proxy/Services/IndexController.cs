@@ -8,7 +8,6 @@ namespace Proxy.Services;
 
 public class IndexController(WakeOnLan wakeOnLan, State state)
 {
-    private const string IndexFilePath = "I:\\index.html";
     
     [Method("GET"), Route("/")]
     public void GetIndex(WebServerEventArgs eventArgs)
@@ -27,7 +26,7 @@ public class IndexController(WakeOnLan wakeOnLan, State state)
 
     private string GetContent()
     {
-        var index = File.ReadAllText(IndexFilePath)
+        var index = File.ReadAllText(StaticFilePaths.IndexHtmlFilePath)
             .Replace("%pingStatus%", state.PingSucceed.ToString())
             .Replace("%timestamp%", DateTime.UtcNow.ToString());
         return index;

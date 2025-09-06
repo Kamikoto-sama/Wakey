@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using Api.Contracts;
 using nanoFramework.SignalR.Client;
@@ -17,13 +16,13 @@ public sealed class ApiConnection : IDisposable
     private readonly ManualResetEvent reconnectionLock;
     private readonly CancellationTokenSource cts;
 
-    public ApiConnection(Settings.Settings settings)
+    public ApiConnection(ProxySettings settings)
     {
         var connectionOptions = new HubConnectionOptions
         {
             Reconnect = true,
             SslVerification = SslVerification.NoVerification,
-            Certificate = new X509Certificate(Ssl.Certificate)
+            Certificate = SslCertFactory.Create()
         };
         var url = UrlBuilder.BuildStatusUrl(settings.ApiUrl, settings.ApiKey, ClientType.Proxy);
         var connection = new HubConnection(url, options: connectionOptions);

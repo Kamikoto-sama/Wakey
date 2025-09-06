@@ -42,7 +42,7 @@ public class Program
 
         using var shutdownTokenSource = new CancellationTokenSource();
         var builder = new HostBuilder();
-        builder.Properties[nameof(Settings.Settings)] = settings;
+        builder.Properties[nameof(ProxySettings)] = settings;
         builder.Properties[nameof(CancellationTokenSource)] = shutdownTokenSource;
         builder.Properties[nameof(ApiConnection)] = apiConnection;
         builder.Properties[nameof(ILogger)] = logger;
@@ -63,11 +63,11 @@ public class Program
         host.StopAsync(CancellationToken.None);
     }
 
-    private static Settings.Settings ReadSettings()
+    private static ProxySettings ReadSettings()
     {
-        var settingsJson = File.ReadAllText(Settings.Settings.FilePath);
+        var settingsJson = File.ReadAllText(StaticFilePaths.SettingsFilePath);
         Debug.WriteLine($"Read settings: {settingsJson}");
-        return (Settings.Settings)JsonConvert.DeserializeObject(settingsJson, typeof(Settings.Settings));
+        return (ProxySettings)JsonConvert.DeserializeObject(settingsJson, typeof(ProxySettings));
     }
 
     private static CompositeLogger BuildLogger(ApiConnection apiConnection)
@@ -79,7 +79,7 @@ public class Program
 
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton(typeof(Settings.Settings), context.Properties[nameof(Settings.Settings)]);
+        services.AddSingleton(typeof(ProxySettings), context.Properties[nameof(ProxySettings)]);
         services.AddSingleton(typeof(CancellationTokenSource), context.Properties[nameof(CancellationTokenSource)]);
         services.AddSingleton(typeof(ApiConnection), context.Properties[nameof(ApiConnection)]);
         services.AddSingleton(typeof(ILogger), context.Properties[nameof(ILogger)]);
